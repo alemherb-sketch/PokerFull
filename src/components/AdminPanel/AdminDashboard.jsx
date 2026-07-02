@@ -269,6 +269,14 @@ const AdminDashboard = () => {
               })}
             </div>
           </div>
+        ) : (
+          <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem', textAlign: 'center' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              <Users size={20} />
+              Jugadores Retirados (Historial)
+            </h3>
+            <p className="text-muted">No hay jugadores retirados en esta sesión todavía.</p>
+          </div>
         )}
 
         {/* Past Sessions List */}
@@ -303,6 +311,14 @@ const AdminDashboard = () => {
                 </div>
               ))}
             </div>
+          </div>
+        ) : (
+          <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem', textAlign: 'center' }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+              <Calendar size={20} />
+              Historial de Sesiones de Juego
+            </h3>
+            <p className="text-muted">Aún no has cerrado ninguna sesión de juego.</p>
           </div>
         )}
       </div>
