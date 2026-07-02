@@ -385,7 +385,7 @@ const AdminDashboard = () => {
                   value={newPlayerPhone} 
                   onChange={(e) => setNewPlayerPhone(e.target.value)} 
                   required 
-                  placeholder="Ej. +51999888777"
+                  placeholder="Ej. 999888777"
                 />
               </div>
               

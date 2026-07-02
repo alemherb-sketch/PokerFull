@@ -111,8 +111,13 @@ const DealerPanel = () => {
 
       // 4. Send via WhatsApp directly using wa.me deep link
       const waMessage = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:%0A%0A${publicUrl}`;
-      const cleanPhone = player.phone.replace(/[^0-9]/g, ''); // Extract only numbers
+      let cleanPhone = player.phone.replace(/[^0-9]/g, ''); // Extract only numbers
       
+      // Auto-append 51 for Peru if user only typed the 9-digit local number
+      if (cleanPhone.length === 9) {
+        cleanPhone = `51${cleanPhone}`;
+      }
+
       window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
 
       recordDealtCards(player.id, player.name, publicUrl);
