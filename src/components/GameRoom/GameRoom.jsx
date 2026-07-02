@@ -33,7 +33,7 @@ const GameRoom = () => {
 
   return (
     <div className="game-room animate-fade-in">
-      <div className="room-header flex-between">
+      <div className="room-header flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 className="text-gradient">Sala Principal VIP</h2>
           <p className="text-muted">Ciegas: S/. 5 / S/. 10</p>

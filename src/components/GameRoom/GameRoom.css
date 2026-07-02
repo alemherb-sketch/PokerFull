@@ -38,15 +38,38 @@
 }
 
 @media (max-width: 768px) {
+  .poker-table-container {
+    padding: 3rem 1rem;
+    min-height: 500px;
+  }
   .poker-table {
-    aspect-ratio: 1.2 / 1;
+    aspect-ratio: 0.65 / 1;
+    border-radius: 45%;
   }
   .pot-total {
-    font-size: 1.2rem;
-    padding: 0.25rem 1rem;
+    font-size: 1.1rem;
+    padding: 0.25rem 0.75rem;
   }
   .table-logo {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+  .seat-avatar {
+    width: 42px !important;
+    height: 42px !important;
+    font-size: 0.9rem !important;
+  }
+  .seat-info {
+    min-width: 80px !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+  .player-name {
+    font-size: 0.75rem !important;
+  }
+  .player-balance {
+    font-size: 0.7rem !important;
+  }
+  .table-seat {
+    gap: 0.25rem !important;
   }
 }
 
