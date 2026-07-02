@@ -23,8 +23,20 @@ const DealerPanel = () => {
         setCameraActive(true);
       }
     } catch (err) {
-      console.error("Error accessing camera:", err);
-      alert("No se pudo acceder a la cámara.");
+      console.error("Error accessing camera with environment mode:", err);
+      try {
+        // Fallback: intentar sin especificar la cámara trasera
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+          video: true 
+        });
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          setCameraActive(true);
+        }
+      } catch (fallbackErr) {
+        console.error("Error accessing any camera:", fallbackErr);
+        alert("No se pudo acceder a la cámara. Por favor, asegúrate de darle permisos al navegador. Error: " + fallbackErr.message);
+      }
     }
   };
 
