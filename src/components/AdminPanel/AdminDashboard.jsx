@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Smartphone } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { players, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack } = useGame();
+  const { players, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePhone } = useGame();
   
   // Buy-in state
   const [selectedPlayer, setSelectedPlayer] = useState('');
@@ -29,6 +29,11 @@ const AdminDashboard = () => {
   const [showUpdateStack, setShowUpdateStack] = useState(false);
   const [stackPlayer, setStackPlayer] = useState(null);
   const [newStackAmount, setNewStackAmount] = useState('');
+
+  // Update Phone state
+  const [showUpdatePhone, setShowUpdatePhone] = useState(false);
+  const [phonePlayer, setPhonePlayer] = useState(null);
+  const [newPhone, setNewPhone] = useState('');
 
   const handleBuyIn = (e) => {
     e.preventDefault();
@@ -146,6 +151,18 @@ const AdminDashboard = () => {
                       }}
                     >
                       <Coins size={16} />
+                    </button>
+                    <button 
+                      className="btn-icon" 
+                      title="Editar Número"
+                      style={{ background: 'rgba(16, 185, 129, 0.2)', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}
+                      onClick={() => {
+                        setPhonePlayer(p);
+                        setNewPhone(p.phone);
+                        setShowUpdatePhone(true);
+                      }}
+                    >
+                      <Smartphone size={16} />
                     </button>
                     <button 
                       className="btn-icon" 
@@ -339,6 +356,45 @@ const AdminDashboard = () => {
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}>
                 Actualizar Fichas
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Update Phone Modal */}
+      {showUpdatePhone && phonePlayer && (
+        <div className="modal-overlay flex-center">
+          <div className="modal-content glass-panel animate-fade-in">
+            <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Smartphone size={20} className="text-gradient-green" style={{ color: '#10b981' }} />
+                Editar Número de {phonePlayer.name}
+              </h3>
+              <button className="btn-icon" onClick={() => setShowUpdatePhone(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              updatePhone(phonePlayer.id, newPhone);
+              setShowUpdatePhone(false);
+            }}>
+              
+              <div className="input-group">
+                <label>Número de Teléfono</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={newPhone} 
+                  onChange={(e) => setNewPhone(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', background: 'linear-gradient(135deg, #10b981, #059669)' }}>
+                Guardar Número
               </button>
             </form>
           </div>

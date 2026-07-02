@@ -204,6 +204,27 @@ export const GameProvider = ({ children }) => {
     }
   };
 
+  const updatePhone = async (playerId, newPhone) => {
+    if (!supabase) {
+      // Mock update
+      setPlayers(prev => prev.map(p => 
+        p.id === playerId ? { ...p, phone: newPhone } : p
+      ));
+      return;
+    }
+
+    // Supabase update
+    const { error } = await supabase
+      .from('players')
+      .update({ phone: newPhone })
+      .eq('id', playerId);
+
+    if (error) {
+      console.error("Error updating phone:", error);
+      alert("Error al actualizar número: " + error.message);
+    }
+  };
+
   return (
     <GameContext.Provider value={{ 
       players, 
@@ -216,7 +237,8 @@ export const GameProvider = ({ children }) => {
       dealtCards,
       recordDealtCards,
       clearDealtCards,
-      updateStack
+      updateStack,
+      updatePhone
     }}>
       {children}
     </GameContext.Provider>
