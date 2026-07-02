@@ -225,7 +225,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Retired Players List */}
-        {retiredPlayers.length > 0 && (
+        {retiredPlayers.length > 0 ? (
           <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem' }}>
             <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
@@ -280,7 +280,7 @@ const AdminDashboard = () => {
         )}
 
         {/* Past Sessions List */}
-        {pastSessions && pastSessions.length > 0 && (
+        {pastSessions && pastSessions.length > 0 ? (
           <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem' }}>
             <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
