@@ -291,23 +291,43 @@ const AdminDashboard = () => {
             
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               {pastSessions.map(session => (
-                <div key={session.id} className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-                  <div style={{ flex: '1', minWidth: '200px' }}>
-                    <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>Sesión: {session.date}</div>
-                    <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                      Jugadores Totales: {session.total_players}
+                <div key={session.id} className="glass-panel" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', padding: '1rem' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                    <div style={{ flex: '1', minWidth: '200px' }}>
+                      <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>Sesión: {session.date}</div>
+                      <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                        Jugadores Totales: {session.total_players}
+                      </div>
+                    </div>
+                    <div className="flex-center" style={{ gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Jugado (Caja)</div>
+                        <div style={{ fontWeight: '700', color: '#fbbf24' }}>S/. {Number(session.total_pot).toFixed(2)}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Retirado</div>
+                        <div style={{ fontWeight: '700', color: 'var(--text-muted)' }}>S/. {Number(session.total_cashout).toFixed(2)}</div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex-center" style={{ gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Jugado (Caja)</div>
-                      <div style={{ fontWeight: '700', color: '#fbbf24' }}>S/. {Number(session.total_pot).toFixed(2)}</div>
+                  
+                  {/* Players in this session */}
+                  {session.player_history && session.player_history.length > 0 && (
+                    <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <div className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: '600' }}>Jugadores de la Sesión:</div>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                        {session.player_history.map(player => (
+                          <div key={player.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
+                            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: player.profit > 0 ? '#10b981' : player.profit < 0 ? '#f87171' : 'gray' }}></div>
+                            <div>
+                              <div style={{ fontSize: '0.9rem', fontWeight: '500' }}>{player.name}</div>
+                              <div className="text-muted" style={{ fontSize: '0.75rem' }}>{player.phone || 'Sin número'}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                    <div style={{ textAlign: 'right' }}>
-                      <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Retirado</div>
-                      <div style={{ fontWeight: '700', color: 'var(--text-muted)' }}>S/. {Number(session.total_cashout).toFixed(2)}</div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               ))}
             </div>

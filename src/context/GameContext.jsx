@@ -63,8 +63,8 @@ export const GameProvider = ({ children }) => {
         setSessionPhotos(formattedPhotos);
       }
 
-      // 4. Fetch past game sessions
-      const { data: sessionsData } = await supabase.from('game_sessions').select('*').order('created_at', { ascending: false });
+      // 4. Fetch past game sessions with their players
+      const { data: sessionsData } = await supabase.from('game_sessions').select('*, player_history(*)').order('created_at', { ascending: false });
       if (sessionsData) {
         setPastSessions(sessionsData);
       }
@@ -371,8 +371,8 @@ export const GameProvider = ({ children }) => {
         // Clear session photos from Supabase (they are tied to the round, or we can keep them. The user wanted a history per session. For now we clear to start fresh)
         await supabase.from('sent_photos').delete().neq('id', 0);
         
-        // Refresh past sessions
-        const { data: newSessions } = await supabase.from('game_sessions').select('*').order('created_at', { ascending: false });
+        // Refresh past sessions with players
+        const { data: newSessions } = await supabase.from('game_sessions').select('*, player_history(*)').order('created_at', { ascending: false });
         if (newSessions) setPastSessions(newSessions);
       }
     }
