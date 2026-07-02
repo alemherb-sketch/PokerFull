@@ -269,7 +269,6 @@ const AdminDashboard = () => {
               })}
             </div>
           </div>
-          </div>
         )}
 
         {/* Past Sessions List */}
