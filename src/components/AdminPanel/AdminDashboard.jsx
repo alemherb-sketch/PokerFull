@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { supabase } from '../../supabaseClient';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download, ChevronDown, ChevronUp } from 'lucide-react';
 import { exportSessionToExcel } from '../../utils/excelExport';
 
 const AdminDashboard = () => {
@@ -38,6 +38,16 @@ const AdminDashboard = () => {
   const [editName, setEditName] = useState('');
   const [editPhone, setEditPhone] = useState('');
   const [editBalance, setEditBalance] = useState('');
+
+  // Expandable Session state
+  const [expandedSessions, setExpandedSessions] = useState({});
+  
+  const toggleSessionDetails = (sessionId) => {
+    setExpandedSessions(prev => ({
+      ...prev,
+      [sessionId]: !prev[sessionId]
+    }));
+  };
 
   const handleBuyIn = (e) => {
     e.preventDefault();
@@ -311,11 +321,35 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                   
-                  {/* Players in this session */}
+                  {/* Players in this session (Toggleable) */}
                   {session.player_history && session.player_history.length > 0 && (
-                    <div style={{ marginTop: '0.5rem', paddingTop: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                      <div className="text-muted" style={{ fontSize: '0.85rem', marginBottom: '0.5rem', fontWeight: '600' }}>Jugadores de la Sesión:</div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>
+                    <div style={{ marginTop: '0.5rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <button 
+                        onClick={() => toggleSessionDetails(session.id)}
+                        style={{ 
+                          width: '100%', 
+                          background: 'transparent', 
+                          border: 'none', 
+                          padding: '0.75rem 0', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center', 
+                          gap: '0.5rem', 
+                          color: 'var(--text-muted)', 
+                          cursor: 'pointer',
+                          fontWeight: '600'
+                        }}
+                      >
+                        {expandedSessions[session.id] ? (
+                          <><ChevronUp size={16} /> Ocultar Jugadores</>
+                        ) : (
+                          <><ChevronDown size={16} /> Ver Jugadores de la Sesión ({session.player_history.length})</>
+                        )}
+                      </button>
+
+                      {expandedSessions[session.id] && (
+                        <div style={{ paddingTop: '0.5rem', paddingBottom: '0.5rem' }}>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '0.5rem' }}>
                         {session.player_history.map(player => (
                           <div key={player.id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(0,0,0,0.2)', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)' }}>
                             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: player.profit > 0 ? '#10b981' : player.profit < 0 ? '#f87171' : 'gray' }}></div>
@@ -326,6 +360,8 @@ const AdminDashboard = () => {
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
                     </div>
                   )}
                 </div>
