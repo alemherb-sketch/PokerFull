@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { supabase } from '../../supabaseClient';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download } from 'lucide-react';
 import { exportSessionToExcel } from '../../utils/excelExport';
 
 const AdminDashboard = () => {
-  const { players, retiredPlayers, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails, closeGameSession } = useGame();
+  const { players, retiredPlayers, pastSessions, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails, closeGameSession } = useGame();
   
   // Buy-in state
   const [selectedPlayer, setSelectedPlayer] = useState('');
@@ -267,6 +267,42 @@ const AdminDashboard = () => {
                   </div>
                 );
               })}
+            </div>
+          </div>
+          </div>
+        )}
+
+        {/* Past Sessions List */}
+        {pastSessions && pastSessions.length > 0 && (
+          <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem' }}>
+            <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                <Calendar size={20} />
+                Historial de Sesiones de Juego
+              </h3>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {pastSessions.map(session => (
+                <div key={session.id} className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ flex: '1', minWidth: '200px' }}>
+                    <div style={{ fontWeight: '600', fontSize: '1.1rem' }}>Sesión: {session.date}</div>
+                    <div className="text-muted" style={{ fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                      Jugadores Totales: {session.total_players}
+                    </div>
+                  </div>
+                  <div className="flex-center" style={{ gap: '1.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Jugado (Caja)</div>
+                      <div style={{ fontWeight: '700', color: '#fbbf24' }}>S/. {Number(session.total_pot).toFixed(2)}</div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div className="text-muted" style={{ fontSize: '0.8rem' }}>Total Retirado</div>
+                      <div style={{ fontWeight: '700', color: 'var(--text-muted)' }}>S/. {Number(session.total_cashout).toFixed(2)}</div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

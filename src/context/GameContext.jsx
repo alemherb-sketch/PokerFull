@@ -16,6 +16,7 @@ export const GameProvider = ({ children }) => {
   const [dealtCards, setDealtCards] = useState([]); // { playerId, playerName, imageUrl, timestamp }
   const [sessionPhotos, setSessionPhotos] = useState([]); // Global photos for the entire session
   const [retiredPlayers, setRetiredPlayers] = useState([]); // Players removed during the current session
+  const [pastSessions, setPastSessions] = useState([]); // History of closed sessions
 
   useEffect(() => {
     if (!supabase) {
@@ -27,24 +28,62 @@ export const GameProvider = ({ children }) => {
     }
 
     // Fetch initial data
-    const fetchPlayers = async () => {
-      const { data, error } = await supabase.from('players').select('*');
-      if (error) console.error("Error fetching players:", error);
+    const fetchInitialData = async () => {
+      // 1. Fetch active players
+      const { data: playersData, error: playersError } = await supabase.from('players').select('*');
+      if (playersError) console.error("Error fetching players:", playersError);
       else {
-        setPlayers(data);
-        const pot = data.reduce((acc, curr) => acc + Number(curr.balance), 0);
+        setPlayers(playersData);
+        const pot = playersData.reduce((acc, curr) => acc + Number(curr.balance), 0);
         setTotalPot(pot);
+      }
+
+      // 2. Fetch current session retired players (where session_id is null)
+      const { data: retiredData } = await supabase.from('player_history').select('*').is('session_id', null);
+      if (retiredData) {
+        const formattedRetired = retiredData.map(p => ({
+          ...p,
+          balance: p.total_buyin,
+          current_stack: p.final_stack,
+          retiredAt: new Date(p.created_at).toLocaleTimeString()
+        }));
+        setRetiredPlayers(formattedRetired);
+      }
+
+      // 3. Fetch current session photos
+      const { data: photosData } = await supabase.from('sent_photos').select('*');
+      if (photosData) {
+        const formattedPhotos = photosData.map(p => ({
+          id: p.id,
+          playerId: p.player_id,
+          playerName: p.player_name,
+          imageUrl: p.image_url,
+          timestamp: new Date(p.created_at).toLocaleTimeString()
+        }));
+        setSessionPhotos(formattedPhotos);
+      }
+
+      // 4. Fetch past game sessions
+      const { data: sessionsData } = await supabase.from('game_sessions').select('*').order('created_at', { ascending: false });
+      if (sessionsData) {
+        setPastSessions(sessionsData);
       }
     };
 
-    fetchPlayers();
+    fetchInitialData();
 
     // Subscribe to realtime changes
     const subscription = supabase
       .channel('players-changes')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'players' }, (payload) => {
         console.log("Change received!", payload);
-        fetchPlayers(); // Re-fetch all to re-calculate pot safely
+        // We only re-fetch players on realtime change to avoid heavy re-fetching of history
+        supabase.from('players').select('*').then(({data}) => {
+          if (data) {
+            setPlayers(data);
+            setTotalPot(data.reduce((acc, curr) => acc + Number(curr.balance), 0));
+          }
+        });
       })
       .subscribe();
 
@@ -328,6 +367,13 @@ export const GameProvider = ({ children }) => {
 
         // Clear active players from Supabase
         await supabase.from('players').delete().neq('id', 0);
+        
+        // Clear session photos from Supabase (they are tied to the round, or we can keep them. The user wanted a history per session. For now we clear to start fresh)
+        await supabase.from('sent_photos').delete().neq('id', 0);
+        
+        // Refresh past sessions
+        const { data: newSessions } = await supabase.from('game_sessions').select('*').order('created_at', { ascending: false });
+        if (newSessions) setPastSessions(newSessions);
       }
     }
 
@@ -356,6 +402,7 @@ export const GameProvider = ({ children }) => {
       dealtCards,
       sessionPhotos,
       retiredPlayers,
+      pastSessions,
       setRetiredPlayers,
       recordDealtCards,
       clearDealtCards,
