@@ -123,14 +123,14 @@ const AdminDashboard = () => {
               const isLosing = profit < 0;
 
               return (
-                <div key={p.id} className="glass-panel flex-between" style={{ padding: '1rem', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ flex: '1', minWidth: 0, paddingRight: '0.5rem' }}>
+                <div key={p.id} className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                  <div style={{ flex: '1', minWidth: '150px' }}>
                     <div style={{ fontWeight: '600', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{p.name}</div>
                     <div className="text-muted" style={{ fontSize: '0.85rem', overflowWrap: 'break-word' }}>
                       Asiento {p.position} • <br/>{p.phone}
                     </div>
                   </div>
-                  <div className="flex-center" style={{ gap: '0.75rem', flexShrink: 0 }}>
+                  <div className="flex-center" style={{ gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
                     <div style={{ textAlign: 'right', marginRight: '0.5rem' }}>
                       <div className="currency-pen text-gradient-green" style={{ fontWeight: '700', whiteSpace: 'nowrap' }}>
                         S/. {totalBuyIn.toFixed(2)}
