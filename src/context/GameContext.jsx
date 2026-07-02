@@ -14,6 +14,8 @@ export const GameProvider = ({ children }) => {
   const [players, setPlayers] = useState([]);
   const [totalPot, setTotalPot] = useState(0);
   const [dealtCards, setDealtCards] = useState([]); // { playerId, playerName, imageUrl, timestamp }
+  const [sessionPhotos, setSessionPhotos] = useState([]); // Global photos for the entire session
+  const [retiredPlayers, setRetiredPlayers] = useState([]); // Players removed during the current session
 
   useEffect(() => {
     if (!supabase) {
@@ -116,11 +118,42 @@ export const GameProvider = ({ children }) => {
   };
 
   const removePlayer = async (playerId) => {
+    const playerToRetire = players.find(p => p.id === playerId);
+    if (!playerToRetire) return;
+
+    const currentStack = Number(playerToRetire.current_stack !== undefined ? playerToRetire.current_stack : playerToRetire.balance);
+    const totalBuyIn = Number(playerToRetire.balance);
+    const profit = currentStack - totalBuyIn;
+
+    const retiredRecord = {
+      ...playerToRetire,
+      final_stack: currentStack,
+      profit: profit,
+      retiredAt: new Date().toLocaleTimeString()
+    };
+
+    setRetiredPlayers(prev => [...prev, retiredRecord]);
+
     if (!supabase) {
       // Mock delete
       setPlayers(prev => prev.filter(p => p.id !== playerId));
       return;
     }
+
+    // Save to player_history in Supabase (we'll save session_id when we close the session)
+    // For now, we can just save it to player_history with session_id = null or we wait until session close.
+    // Let's insert it immediately so it's not lost on refresh
+    const { error: historyError } = await supabase
+      .from('player_history')
+      .insert([{ 
+        name: playerToRetire.name,
+        phone: playerToRetire.phone,
+        total_buyin: totalBuyIn,
+        final_stack: currentStack,
+        profit: profit
+      }]);
+      
+    if (historyError) console.error("Error saving player history:", historyError);
 
     // Supabase delete
     const { error } = await supabase
@@ -168,7 +201,7 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  const recordDealtCards = (playerId, playerName, imageUrl) => {
+  const recordDealtCards = async (playerId, playerName, imageUrl) => {
     const record = {
       id: Date.now(),
       playerId,
@@ -176,7 +209,19 @@ export const GameProvider = ({ children }) => {
       imageUrl,
       timestamp: new Date().toLocaleTimeString()
     };
+    
+    // Update local states
     setDealtCards(prev => [record, ...prev]);
+    setSessionPhotos(prev => [record, ...prev]);
+
+    // Optional: Save to Supabase for permanent persistence
+    if (supabase) {
+      await supabase.from('sent_photos').insert([{
+        player_id: playerId,
+        player_name: playerName,
+        image_url: imageUrl
+      }]);
+    }
   };
 
   const clearDealtCards = () => {
@@ -225,6 +270,80 @@ export const GameProvider = ({ children }) => {
     }
   };
 
+  const closeGameSession = async () => {
+    const activePlayersAsRetired = players.map(p => {
+      const currentStack = Number(p.current_stack !== undefined ? p.current_stack : p.balance);
+      const totalBuyIn = Number(p.balance);
+      return {
+        ...p,
+        total_buyin: totalBuyIn,
+        final_stack: currentStack,
+        profit: currentStack - totalBuyIn,
+        retiredAt: new Date().toLocaleTimeString()
+      };
+    });
+
+    const allSessionPlayers = [...retiredPlayers, ...activePlayersAsRetired];
+    
+    if (allSessionPlayers.length === 0) {
+      alert("No hay jugadores en esta sesión.");
+      return null;
+    }
+
+    const totalBuyIn = allSessionPlayers.reduce((sum, p) => sum + (p.total_buyin || p.balance), 0);
+    const totalCashout = allSessionPlayers.reduce((sum, p) => sum + p.final_stack, 0);
+    const houseProfit = totalBuyIn - totalCashout;
+
+    const sessionData = {
+      date: new Date().toLocaleString(),
+      total_players: allSessionPlayers.length,
+      total_pot: totalBuyIn,
+      total_cashout: totalCashout,
+      house_profit: houseProfit
+    };
+
+    if (supabase) {
+      const { data: sessionRecord, error: sessionError } = await supabase
+        .from('game_sessions')
+        .insert([sessionData])
+        .select()
+        .single();
+
+      if (sessionError) {
+        console.error("Error saving session:", sessionError);
+        alert("Error al guardar la sesión: " + sessionError.message);
+      } else if (sessionRecord) {
+        const activeToHistory = activePlayersAsRetired.map(p => ({
+          session_id: sessionRecord.id,
+          name: p.name,
+          phone: p.phone,
+          total_buyin: p.total_buyin,
+          final_stack: p.final_stack,
+          profit: p.profit
+        }));
+
+        if (activeToHistory.length > 0) {
+          await supabase.from('player_history').insert(activeToHistory);
+        }
+
+        // Clear active players from Supabase
+        await supabase.from('players').delete().neq('id', 0);
+      }
+    }
+
+    // Clear local state
+    setPlayers([]);
+    setRetiredPlayers([]);
+    setTotalPot(0);
+    setDealtCards([]);
+    setSessionPhotos([]);
+
+    return {
+      ...sessionData,
+      players: allSessionPlayers
+    };
+  };
+
   return (
     <GameContext.Provider value={{ 
       players, 
@@ -235,10 +354,14 @@ export const GameProvider = ({ children }) => {
       removePlayer, 
       changeSeat,
       dealtCards,
+      sessionPhotos,
+      retiredPlayers,
+      setRetiredPlayers,
       recordDealtCards,
       clearDealtCards,
       updateStack,
-      updatePlayerDetails
+      updatePlayerDetails,
+      closeGameSession
     }}>
       {children}
     </GameContext.Provider>

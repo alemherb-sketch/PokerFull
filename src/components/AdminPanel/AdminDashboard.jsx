@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2 } from 'lucide-react';
+import { supabase } from '../../supabaseClient';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save } from 'lucide-react';
+import { exportSessionToExcel } from '../../utils/excelExport';
 
 const AdminDashboard = () => {
-  const { players, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails } = useGame();
+  const { players, retiredPlayers, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails, closeGameSession } = useGame();
   
   // Buy-in state
   const [selectedPlayer, setSelectedPlayer] = useState('');
@@ -47,11 +49,34 @@ const AdminDashboard = () => {
 
   return (
     <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      <div className="flex-between">
+      <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <h2 className="text-gradient">Panel de Administración</h2>
-        <div className="glass-panel" style={{ padding: '1rem 2rem' }}>
-          <span className="text-muted">Caja Total (PEN): </span>
-          <span className="currency-pen text-gradient-green" style={{ fontSize: '1.5rem' }}>S/. {totalPot.toFixed(2)}</span>
+        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div className="glass-panel" style={{ padding: '1rem 2rem' }}>
+            <span className="text-muted">Caja Total (PEN): </span>
+            <span className="currency-pen text-gradient-green" style={{ fontSize: '1.5rem' }}>S/. {totalPot.toFixed(2)}</span>
+          </div>
+          
+          <button 
+            className="btn btn-secondary pulse-primary" 
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171', border: '1px solid rgba(239, 68, 68, 0.5)', height: '100%' }}
+            onClick={async () => {
+              if (players.length === 0 && retiredPlayers.length === 0) {
+                alert("No hay datos en esta sesión para guardar.");
+                return;
+              }
+              if (window.confirm("🚨 ¿Estás seguro de CERRAR LA SESIÓN DE JUEGO? Esto limpiará la mesa, guardará el historial final y generará un reporte Excel.")) {
+                const sessionData = await closeGameSession();
+                if (sessionData) {
+                  exportSessionToExcel(sessionData);
+                  alert("✅ ¡Sesión cerrada exitosamente! Se ha descargado el archivo Excel con el resumen.");
+                }
+              }
+            }}
+          >
+            <Save size={20} />
+            Cerrar Sesión de Juego
+          </button>
         </div>
       </div>
 
@@ -198,6 +223,53 @@ const AdminDashboard = () => {
             })}
           </div>
         </div>
+
+        {/* Retired Players List */}
+        {retiredPlayers.length > 0 && (
+          <div className="glass-panel animate-fade-in" style={{ padding: '2rem', marginTop: '2rem' }}>
+            <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)' }}>
+                <Users size={20} />
+                Jugadores Retirados (Historial)
+              </h3>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              {retiredPlayers.map(p => {
+                const isWinning = p.profit > 0;
+                const isLosing = p.profit < 0;
+
+                return (
+                  <div key={p.id} className="glass-panel" style={{ display: 'flex', flexWrap: 'wrap', padding: '1rem', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', opacity: 0.8 }}>
+                    <div style={{ flex: '1', minWidth: '150px' }}>
+                      <div style={{ fontWeight: '600' }}>{p.name} <span style={{ fontSize: '0.8rem', fontWeight: 'normal', color: 'var(--text-muted)' }}>(Retirado: {p.retiredAt})</span></div>
+                      <div className="text-muted" style={{ fontSize: '0.85rem' }}>
+                        Inversión Total: S/. {p.total_buyin || (p.balance)}
+                      </div>
+                    </div>
+                    <div className="flex-center" style={{ gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      <div style={{ textAlign: 'right', marginRight: '0.5rem' }}>
+                        <div className="text-muted" style={{ fontSize: '0.8rem', fontWeight: '600' }}>
+                          Retiró: S/. {p.final_stack !== undefined ? p.final_stack.toFixed(2) : '0.00'}
+                        </div>
+                        {(isWinning || isLosing) && (
+                          <div style={{ fontSize: '0.9rem', fontWeight: '700', color: isWinning ? '#10b981' : '#f87171' }}>
+                            {isWinning ? '+' : '-'} S/. {Math.abs(p.profit).toFixed(2)}
+                          </div>
+                        )}
+                        {p.profit === 0 && (
+                          <div style={{ fontSize: '0.9rem', fontWeight: '700', color: 'var(--text-muted)' }}>
+                            S/. 0.00 (Empate)
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add Player Modal */}

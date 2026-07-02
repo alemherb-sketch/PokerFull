@@ -10,6 +10,7 @@ const DealerPanel = () => {
   const [photo, setPhoto] = useState(null);
   const [sending, setSending] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showGlobalHistory, setShowGlobalHistory] = useState(false);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -62,6 +63,18 @@ const DealerPanel = () => {
 
   const sendToWhatsApp = async () => {
     if (!selectedPlayer || !photo) return;
+
+    // VALIDATION: Check if player already received cards this round
+    const alreadyDealt = dealtCards.some(card => card.playerId === Number(selectedPlayer));
+    if (alreadyDealt) {
+      const confirmOverwrite = window.confirm("⚠️ Este jugador ya recibió sus cartas en esta ronda. ¿Deseas enviar una NUEVA foto y sobreescribir la anterior?");
+      if (!confirmOverwrite) {
+        setPhoto(null);
+        setSelectedPlayer('');
+        return;
+      }
+    }
+
     setSending(true);
 
     const player = players.find(p => p.id === Number(selectedPlayer));
@@ -139,6 +152,12 @@ const DealerPanel = () => {
             2. Escanear Cartas
           </label>
           
+          {selectedPlayer && dealtCards.some(card => card.playerId === Number(selectedPlayer)) && (
+            <div style={{ background: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', padding: '0.75rem', borderRadius: 'var(--radius-md)', marginBottom: '1rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+               ⚠️ Ya enviaste cartas a este jugador.
+            </div>
+          )}
+          
           {!cameraActive && !photo && (
             <button 
               className="btn btn-secondary pulse-primary" 
@@ -207,7 +226,7 @@ const DealerPanel = () => {
         <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <button 
             className="btn btn-secondary" 
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', minWidth: '150px' }}
             onClick={() => setShowHistory(true)}
           >
             <History size={18} />
@@ -215,7 +234,15 @@ const DealerPanel = () => {
           </button>
           <button 
             className="btn btn-secondary" 
-            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: '#f87171' }}
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', minWidth: '150px', color: '#60a5fa' }}
+            onClick={() => setShowGlobalHistory(true)}
+          >
+            <Camera size={18} />
+            Fotos de la Sesión
+          </button>
+          <button 
+            className="btn btn-secondary" 
+            style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', minWidth: '150px', color: '#f87171' }}
             onClick={() => {
               if(window.confirm("¿Estás seguro de borrar el historial de esta ronda?")) {
                 clearDealtCards();
@@ -261,6 +288,47 @@ const DealerPanel = () => {
                       src={record.imageUrl} 
                       alt={`Cartas de ${record.playerName}`} 
                       style={{ width: '100%', aspectRatio: '4/3', objectFit: 'cover', borderRadius: 'var(--radius-sm)' }} 
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* Global Card History Modal */}
+      {showGlobalHistory && (
+        <div className="modal-overlay flex-center" style={{ padding: '1rem' }}>
+          <div className="modal-content glass-panel animate-fade-in" style={{ width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex-between" style={{ marginBottom: '1.5rem', position: 'sticky', top: 0, background: 'var(--bg-surface)', padding: '1rem 0', zIndex: 10 }}>
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Camera size={20} className="text-gradient" />
+                Todas las Fotos de la Sesión
+              </h3>
+              <button className="btn-icon" onClick={() => setShowGlobalHistory(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            {useGame().sessionPhotos.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '3rem 0', color: 'var(--text-muted)' }}>
+                <Camera size={48} style={{ opacity: 0.2, marginBottom: '1rem' }} />
+                <p>No se han enviado fotos en esta sesión.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                {useGame().sessionPhotos.map(record => (
+                  <div key={record.id} className="glass-panel" style={{ padding: '0.5rem', overflow: 'hidden' }}>
+                    <div style={{ padding: '0.5rem', borderBottom: '1px solid var(--glass-border)', marginBottom: '0.5rem' }}>
+                      <div style={{ fontWeight: '600' }}>{record.playerName}</div>
+                      <div className="text-muted" style={{ fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                        <Clock size={12} /> {record.timestamp}
+                      </div>
+                    </div>
+                    <img 
+                      src={record.imageUrl} 
+                      alt="Cartas" 
+                      style={{ width: '100%', borderRadius: 'var(--radius-sm)', display: 'block' }} 
                     />
                   </div>
                 ))}
