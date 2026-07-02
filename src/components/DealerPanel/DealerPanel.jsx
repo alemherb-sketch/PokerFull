@@ -204,7 +204,7 @@ const DealerPanel = () => {
         )}
         
         {/* History Buttons */}
-        <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', display: 'flex', gap: '1rem' }}>
+        <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid var(--glass-border)', display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
           <button 
             className="btn btn-secondary" 
             style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}

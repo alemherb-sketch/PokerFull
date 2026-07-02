@@ -230,9 +230,11 @@ h1, h2, h3, h4, h5, h6 {
     white-space: nowrap;
     position: sticky;
     top: 0;
-    z-index: 50;
-    background: var(--bg-surface) !important;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    z-index: 9999;
+    background: var(--bg-color) !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.8);
   }
   
   .sidebar nav {
@@ -249,10 +251,13 @@ h1, h2, h3, h4, h5, h6 {
   }
   
   main {
-    padding: 1rem !important;
+    padding: 0.5rem !important;
   }
   .responsive-grid {
     grid-template-columns: 1fr !important;
+  }
+  .glass-panel {
+    padding: 1rem !important;
   }
 }
 
