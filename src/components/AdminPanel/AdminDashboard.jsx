@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Smartphone } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2 } from 'lucide-react';
 
 const AdminDashboard = () => {
-  const { players, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePhone } = useGame();
+  const { players, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails } = useGame();
   
   // Buy-in state
   const [selectedPlayer, setSelectedPlayer] = useState('');
@@ -30,10 +30,12 @@ const AdminDashboard = () => {
   const [stackPlayer, setStackPlayer] = useState(null);
   const [newStackAmount, setNewStackAmount] = useState('');
 
-  // Update Phone state
-  const [showUpdatePhone, setShowUpdatePhone] = useState(false);
-  const [phonePlayer, setPhonePlayer] = useState(null);
-  const [newPhone, setNewPhone] = useState('');
+  // Edit Player state
+  const [showEditPlayer, setShowEditPlayer] = useState(false);
+  const [editPlayer, setEditPlayer] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [editPhone, setEditPhone] = useState('');
+  const [editBalance, setEditBalance] = useState('');
 
   const handleBuyIn = (e) => {
     e.preventDefault();
@@ -154,15 +156,17 @@ const AdminDashboard = () => {
                     </button>
                     <button 
                       className="btn-icon" 
-                      title="Editar Número"
+                      title="Editar Jugador"
                       style={{ background: 'rgba(16, 185, 129, 0.2)', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.5rem', borderRadius: 'var(--radius-md)' }}
                       onClick={() => {
-                        setPhonePlayer(p);
-                        setNewPhone(p.phone);
-                        setShowUpdatePhone(true);
+                        setEditPlayer(p);
+                        setEditName(p.name);
+                        setEditPhone(p.phone);
+                        setEditBalance(p.balance);
+                        setShowEditPlayer(true);
                       }}
                     >
-                      <Smartphone size={16} />
+                      <Edit2 size={16} />
                     </button>
                     <button 
                       className="btn-icon" 
@@ -362,39 +366,62 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* Update Phone Modal */}
-      {showUpdatePhone && phonePlayer && (
+      {/* Edit Player Modal */}
+      {showEditPlayer && editPlayer && (
         <div className="modal-overlay flex-center">
           <div className="modal-content glass-panel animate-fade-in">
             <div className="flex-between" style={{ marginBottom: '1.5rem' }}>
               <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Smartphone size={20} className="text-gradient-green" style={{ color: '#10b981' }} />
-                Editar Número de {phonePlayer.name}
+                <Edit2 size={20} className="text-gradient-green" style={{ color: '#10b981' }} />
+                Editar Jugador
               </h3>
-              <button className="btn-icon" onClick={() => setShowUpdatePhone(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+              <button className="btn-icon" onClick={() => setShowEditPlayer(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
                 <X size={24} />
               </button>
             </div>
             
             <form onSubmit={(e) => {
               e.preventDefault();
-              updatePhone(phonePlayer.id, newPhone);
-              setShowUpdatePhone(false);
+              updatePlayerDetails(editPlayer.id, editName, editPhone, Number(editBalance));
+              setShowEditPlayer(false);
             }}>
-              
+              <div className="input-group">
+                <label>Nombre del Jugador</label>
+                <input 
+                  type="text" 
+                  className="input-field" 
+                  value={editName} 
+                  onChange={(e) => setEditName(e.target.value)} 
+                  required 
+                />
+              </div>
+
               <div className="input-group">
                 <label>Número de Teléfono</label>
                 <input 
                   type="text" 
                   className="input-field" 
-                  value={newPhone} 
-                  onChange={(e) => setNewPhone(e.target.value)} 
+                  value={editPhone} 
+                  onChange={(e) => setEditPhone(e.target.value)} 
+                  required 
+                />
+              </div>
+
+              <div className="input-group">
+                <label>Total Inversión (S/.)</label>
+                <input 
+                  type="number" 
+                  className="input-field" 
+                  value={editBalance} 
+                  onChange={(e) => setEditBalance(e.target.value)} 
+                  min="0"
+                  step="0.5"
                   required 
                 />
               </div>
 
               <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem', background: 'linear-gradient(135deg, #10b981, #059669)' }}>
-                Guardar Número
+                Guardar Cambios
               </button>
             </form>
           </div>

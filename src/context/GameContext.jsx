@@ -204,11 +204,11 @@ export const GameProvider = ({ children }) => {
     }
   };
 
-  const updatePhone = async (playerId, newPhone) => {
+  const updatePlayerDetails = async (playerId, newName, newPhone, newBalance) => {
     if (!supabase) {
       // Mock update
       setPlayers(prev => prev.map(p => 
-        p.id === playerId ? { ...p, phone: newPhone } : p
+        p.id === playerId ? { ...p, name: newName, phone: newPhone, balance: newBalance } : p
       ));
       return;
     }
@@ -216,12 +216,12 @@ export const GameProvider = ({ children }) => {
     // Supabase update
     const { error } = await supabase
       .from('players')
-      .update({ phone: newPhone })
+      .update({ name: newName, phone: newPhone, balance: newBalance })
       .eq('id', playerId);
 
     if (error) {
-      console.error("Error updating phone:", error);
-      alert("Error al actualizar número: " + error.message);
+      console.error("Error updating player details:", error);
+      alert("Error al actualizar datos: " + error.message);
     }
   };
 
@@ -238,7 +238,7 @@ export const GameProvider = ({ children }) => {
       recordDealtCards,
       clearDealtCards,
       updateStack,
-      updatePhone
+      updatePlayerDetails
     }}>
       {children}
     </GameContext.Provider>
