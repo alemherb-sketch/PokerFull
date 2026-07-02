@@ -157,23 +157,21 @@ const DealerPanel = () => {
             </button>
           )}
 
-          {cameraActive && (
-            <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}>
-              <video 
-                ref={videoRef} 
-                autoPlay 
-                playsInline 
-                style={{ width: '100%', backgroundColor: '#000' }}
-              />
-              <button 
-                className="btn btn-primary" 
-                style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)' }}
-                onClick={takePhoto}
-              >
-                Capturar Cartas
-              </button>
-            </div>
-          )}
+          <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', display: cameraActive ? 'block' : 'none' }}>
+            <video 
+              ref={videoRef} 
+              autoPlay 
+              playsInline 
+              style={{ width: '100%', backgroundColor: '#000' }}
+            />
+            <button 
+              className="btn btn-primary" 
+              style={{ position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)' }}
+              onClick={takePhoto}
+            >
+              Capturar Cartas
+            </button>
+          </div>
 
           {photo && (
             <div style={{ position: 'relative', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
