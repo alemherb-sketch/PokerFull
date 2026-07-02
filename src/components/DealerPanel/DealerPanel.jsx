@@ -96,19 +96,13 @@ const DealerPanel = () => {
         .from('card-photos')
         .getPublicUrl(fileName);
 
-      // 4. Call Edge Function to send WhatsApp
-      const { data, error } = await supabase.functions.invoke('send-whatsapp', {
-        body: { 
-          phone: player.phone, 
-          imageUrl: publicUrl,
-          message: `Hola ${player.name}, aquí están tus cartas para esta ronda.` 
-        }
-      });
-
-      if (error) throw new Error("Error al enviar WhatsApp: " + error.message);
+      // 4. Send via WhatsApp directly using wa.me deep link
+      const waMessage = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:%0A%0A${publicUrl}`;
+      const cleanPhone = player.phone.replace(/[^0-9]/g, ''); // Extract only numbers
+      
+      window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
 
       recordDealtCards(player.id, player.name, publicUrl);
-      alert(`¡Cartas enviadas por WhatsApp a ${player.name} exitosamente!`);
       setPhoto(null);
       setSelectedPlayer('');
     } catch (err) {
