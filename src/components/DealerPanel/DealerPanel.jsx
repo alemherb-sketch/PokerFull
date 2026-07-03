@@ -110,6 +110,9 @@ const DealerPanel = () => {
         .getPublicUrl(fileName);
 
       // 4. Try sending via Backend Bot first
+      // Bot attaches the photo as media, so the caption doesn't need the raw URL.
+      const botCaption = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:`;
+      // wa.me fallback can't attach media, so it needs the link in the text.
       const waMessage = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:\n\n${publicUrl}`;
       let cleanPhone = player.phone.replace(/[^0-9]/g, ''); // Extract only numbers
       
@@ -126,7 +129,7 @@ const DealerPanel = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             phone: cleanPhone,
-            message: waMessage,
+            message: botCaption,
             imageUrl: publicUrl
           })
         });
