@@ -32,8 +32,9 @@ const GameRoom = () => {
   };
 
   return (
-    <div className="game-room animate-fade-in">
-      <div className="room-header flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
+    <>
+      <div className="game-room animate-fade-in">
+        <div className="room-header flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 className="text-gradient">Sala Principal VIP</h2>
           <p className="text-muted">Ciegas: S/. 5 / S/. 10</p>
@@ -41,6 +42,16 @@ const GameRoom = () => {
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           Comprar Fichas (Buy-in)
         </button>
+        
+        <div className="poker-table-container">
+          <div className="poker-table glass-panel">
+            <div className="table-inner">
+              <span className="table-logo">PokerFull</span>
+              <span className="pot-total text-gradient-green">S/. {totalPot.toFixed(2)}</span>
+            </div>
+            {renderSeats()}
+          </div>
+        </div>
       </div>
 
       {showModal && (
@@ -92,17 +103,7 @@ const GameRoom = () => {
           </div>
         </div>
       )}
-
-      <div className="poker-table-container">
-        <div className="poker-table glass-panel">
-          <div className="table-inner">
-            <span className="table-logo">PokerFull</span>
-            <span className="pot-total text-gradient-green">S/. {totalPot.toFixed(2)}</span>
-          </div>
-          {renderSeats()}
-        </div>
-      </div>
-    </div>
+    </>
   );
 };
 

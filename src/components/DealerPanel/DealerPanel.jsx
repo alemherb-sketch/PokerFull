@@ -157,7 +157,8 @@ const DealerPanel = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
+    <>
+      <div className="animate-fade-in" style={{ maxWidth: '600px', margin: '0 auto' }}>
       <h2 className="text-gradient-green" style={{ textAlign: 'center', marginBottom: '2rem' }}>Panel de Dealer (Repartidor)</h2>
       
       <div className="glass-panel" style={{ padding: '2rem' }}>
@@ -285,6 +286,8 @@ const DealerPanel = () => {
         </div>
       </div>
 
+      </div>
+
       {/* Card History Modal */}
       {showHistory && (
         <div className="modal-overlay flex-center" style={{ padding: '1rem' }}>
@@ -367,7 +370,8 @@ const DealerPanel = () => {
           </div>
         </div>
       )}
-    </div>
+      )}
+    </>
   );
 };
 

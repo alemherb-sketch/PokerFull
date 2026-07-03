@@ -112,7 +112,8 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+    <>
+      <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
       <div className="flex-between" style={{ flexWrap: 'wrap', gap: '1rem' }}>
         <h2 className="text-gradient">Panel de Administración</h2>
         <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -463,6 +464,8 @@ const AdminDashboard = () => {
         )}
       </div>
 
+      </div>
+
       {/* Add Player Modal */}
       {showAddPlayer && (
         <div className="modal-overlay flex-center">
@@ -729,7 +732,8 @@ const AdminDashboard = () => {
           </div>
         </div>
       )}
-    </div>
+      )}
+    </>
   );
 };
 
