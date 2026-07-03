@@ -42,6 +42,7 @@ const GameRoom = () => {
         <button className="btn btn-primary" onClick={() => setShowModal(true)}>
           Comprar Fichas (Buy-in)
         </button>
+      </div>
         
         <div className="poker-table-container">
           <div className="poker-table glass-panel">

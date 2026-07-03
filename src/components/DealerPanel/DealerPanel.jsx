@@ -370,7 +370,6 @@ const DealerPanel = () => {
           </div>
         </div>
       )}
-      )}
     </>
   );
 };
