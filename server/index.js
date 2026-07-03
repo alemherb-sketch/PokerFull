@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 
@@ -41,10 +43,32 @@ const PUPPETEER_ARGS = [
   '--metrics-recording-only'
 ];
 
+// If the previous Chromium process was killed abruptly (crash/OOM/container restart) it can
+// leave a stale SingletonLock behind on the persistent disk. Chromium then refuses to launch,
+// thinking another process still owns the profile, so the client never gets past this point
+// to emit a QR code. Clear these lock files before every launch attempt.
+function clearStaleSingletonLocks() {
+  const dataPath = path.resolve('./.wwebjs_auth/');
+  const sessionDir = path.join(dataPath, 'session');
+  for (const lockFile of ['SingletonLock', 'SingletonCookie', 'SingletonSocket']) {
+    const lockPath = path.join(sessionDir, lockFile);
+    try {
+      fs.unlinkSync(lockPath);
+      console.log(`Removed stale lock file: ${lockPath}`);
+    } catch (err) {
+      if (err.code !== 'ENOENT') {
+        console.error(`Could not remove lock file ${lockPath}:`, err.message);
+      }
+    }
+  }
+}
+
 // Build a brand-new Client each time we (re)connect. Reusing the same instance after a
 // 'disconnected' event is unreliable in whatsapp-web.js because the underlying Puppeteer
 // browser is often already dead/corrupted at that point.
 function createClient() {
+  clearStaleSingletonLocks();
+
   client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
