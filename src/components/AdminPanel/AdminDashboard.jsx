@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { supabase } from '../../supabaseClient';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download, ChevronDown, ChevronUp, MessageCircle, QrCode } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download, ChevronDown, ChevronUp, MessageCircle, QrCode, BookUser } from 'lucide-react';
 import { exportSessionToExcel } from '../../utils/excelExport';
 
 const AdminDashboard = () => {
@@ -80,6 +80,34 @@ const AdminDashboard = () => {
     if (selectedPlayer && amount) {
       buyIn(Number(selectedPlayer), Number(amount));
       setAmount('');
+    }
+  };
+
+  const handleContactSearch = async () => {
+    const supported = ('contacts' in navigator && 'ContactsManager' in window);
+    if (!supported) {
+      alert("La búsqueda de contactos no está soportada en este navegador o dispositivo. Por favor, usa Chrome en Android o Safari en iOS.");
+      return;
+    }
+    
+    try {
+      const props = ['name', 'tel'];
+      const opts = { multiple: false };
+      
+      const contacts = await navigator.contacts.select(props, opts);
+      
+      if (contacts && contacts.length > 0) {
+        const contact = contacts[0];
+        if (contact.name && contact.name.length > 0) {
+          setNewPlayerName(contact.name[0]);
+        }
+        if (contact.tel && contact.tel.length > 0) {
+          const phone = contact.tel[0].replace(/\\D/g, ''); // Remove non-numeric characters
+          setNewPlayerPhone(phone);
+        }
+      }
+    } catch (ex) {
+      console.error("Error al acceder a los contactos:", ex);
     }
   };
 
@@ -445,6 +473,19 @@ const AdminDashboard = () => {
               setNewPlayerPosition(1);
               setShowAddPlayer(false);
             }}>
+              
+              <div style={{ marginBottom: '1.2rem' }}>
+                <button 
+                  type="button" 
+                  className="btn" 
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(59, 130, 246, 0.1)', color: '#60a5fa', border: '1px dashed #60a5fa', padding: '0.75rem', borderRadius: 'var(--radius-md)', cursor: 'pointer' }}
+                  onClick={handleContactSearch}
+                >
+                  <BookUser size={18} />
+                  Buscar en Contactos del Celular
+                </button>
+              </div>
+
               <div className="input-group">
                 <label>Nombre del Jugador</label>
                 <input 
