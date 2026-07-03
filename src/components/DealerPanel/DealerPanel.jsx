@@ -120,7 +120,7 @@ const DealerPanel = () => {
 
       let sentViaBot = false;
       try {
-        const botUrl = import.meta.env.VITE_BOT_URL || 'http://localhost:3001';
+        const botUrl = import.meta.env.VITE_BOT_URL || 'https://pokerfull-bot-kpny.onrender.com';
         const res = await fetch(`${botUrl}/api/send`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -16,7 +16,7 @@ const AdminDashboard = () => {
     // Poll the bot status every 5 seconds
     const fetchBotStatus = async () => {
       try {
-        const botUrl = import.meta.env.VITE_BOT_URL || 'http://localhost:3001';
+        const botUrl = import.meta.env.VITE_BOT_URL || 'https://pokerfull-bot-kpny.onrender.com';
         const res = await fetch(`${botUrl}/api/status`);
         const data = await res.json();
         setBotStatus(data.status);
