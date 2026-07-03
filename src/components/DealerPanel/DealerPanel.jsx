@@ -109,8 +109,8 @@ const DealerPanel = () => {
         .from('card-photos')
         .getPublicUrl(fileName);
 
-      // 4. Send via WhatsApp directly using wa.me deep link
-      const waMessage = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:%0A%0A${publicUrl}`;
+      // 4. Try sending via Backend Bot first
+      const waMessage = `🃏 Hola ${player.name}, aquí están tus cartas ocultas para esta ronda:\n\n${publicUrl}`;
       let cleanPhone = player.phone.replace(/[^0-9]/g, ''); // Extract only numbers
       
       // Auto-append 51 for Peru if user only typed the 9-digit local number
@@ -118,7 +118,32 @@ const DealerPanel = () => {
         cleanPhone = `51${cleanPhone}`;
       }
 
-      window.open(`https://wa.me/${cleanPhone}?text=${waMessage}`, '_blank');
+      let sentViaBot = false;
+      try {
+        const botUrl = import.meta.env.VITE_BOT_URL || 'http://localhost:3001';
+        const res = await fetch(`${botUrl}/api/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            phone: cleanPhone,
+            message: waMessage,
+            imageUrl: publicUrl
+          })
+        });
+        const data = await res.json();
+        if (data.success) {
+          sentViaBot = true;
+          console.log('Mensaje enviado silenciosamente por el Bot');
+        }
+      } catch (err) {
+        console.log('El bot no está disponible, usando método de respaldo...');
+      }
+
+      // 5. Fallback to wa.me if Bot failed or is disconnected
+      if (!sentViaBot) {
+        const encodedMessage = encodeURIComponent(waMessage);
+        window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+      }
 
       recordDealtCards(player.id, player.name, publicUrl);
       setPhoto(null);

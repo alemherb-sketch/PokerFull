@@ -1,12 +1,38 @@
 import React, { useState } from 'react';
 import { useGame } from '../../context/GameContext';
 import { supabase } from '../../supabaseClient';
-import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download, ChevronDown, ChevronUp } from 'lucide-react';
+import { Users, Plus, DollarSign, X, Trash2, Move, Coins, Edit2, Save, Calendar, Download, ChevronDown, ChevronUp, MessageCircle, QrCode } from 'lucide-react';
 import { exportSessionToExcel } from '../../utils/excelExport';
 
 const AdminDashboard = () => {
   const { players, retiredPlayers, pastSessions, totalPot, buyIn, addPlayer, removePlayer, changeSeat, updateStack, updatePlayerDetails, closeGameSession } = useGame();
   
+  // Bot state
+  const [botStatus, setBotStatus] = useState('DISCONNECTED');
+  const [botQR, setBotQR] = useState(null);
+  const [showQRModal, setShowQRModal] = useState(false);
+
+  React.useEffect(() => {
+    // Poll the bot status every 5 seconds
+    const fetchBotStatus = async () => {
+      try {
+        const botUrl = import.meta.env.VITE_BOT_URL || 'http://localhost:3001';
+        const res = await fetch(`${botUrl}/api/status`);
+        const data = await res.json();
+        setBotStatus(data.status);
+        if (data.qr) {
+          setBotQR(data.qr);
+        }
+      } catch (err) {
+        setBotStatus('DISCONNECTED');
+      }
+    };
+    
+    fetchBotStatus();
+    const interval = setInterval(fetchBotStatus, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Buy-in state
   const [selectedPlayer, setSelectedPlayer] = useState('');
   const [amount, setAmount] = useState('');
@@ -65,6 +91,24 @@ const AdminDashboard = () => {
           <div className="glass-panel" style={{ padding: '1rem 2rem' }}>
             <span className="text-muted">Caja Total (PEN): </span>
             <span className="currency-pen text-gradient-green" style={{ fontSize: '1.5rem' }}>S/. {totalPot.toFixed(2)}</span>
+          </div>
+          
+          {/* Bot Status Indicator */}
+          <div className="glass-panel" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <MessageCircle size={20} color={botStatus === 'CONNECTED' ? '#10b981' : botStatus === 'QR_READY' ? '#fbbf24' : '#ef4444'} />
+            <span style={{ fontWeight: '600', fontSize: '0.9rem' }}>
+              Bot: {botStatus === 'CONNECTED' ? 'Conectado' : botStatus === 'QR_READY' ? 'Esperando QR' : 'Desconectado'}
+            </span>
+            {botStatus === 'QR_READY' && (
+              <button 
+                className="btn-icon" 
+                onClick={() => setShowQRModal(true)} 
+                title="Escanear Código QR"
+                style={{ marginLeft: '0.5rem', background: 'rgba(251, 191, 36, 0.2)', color: '#fbbf24', border: 'none', padding: '0.25rem 0.5rem', borderRadius: '4px' }}
+              >
+                <QrCode size={18} /> Ver QR
+              </button>
+            )}
           </div>
           
           <button 
@@ -603,6 +647,32 @@ const AdminDashboard = () => {
                 Guardar Cambios
               </button>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Bot QR Modal */}
+      {showQRModal && (
+        <div className="modal-overlay animate-fade-in flex-center" style={{ zIndex: 100 }}>
+          <div className="modal-content glass-panel" style={{ maxWidth: '400px', width: '90%' }}>
+            <div className="flex-between mb-4">
+              <h3 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <QrCode size={24} /> Escanear para conectar Bot
+              </h3>
+              <button className="btn-icon" onClick={() => setShowQRModal(false)} style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}>
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div style={{ textAlign: 'center', padding: '1rem' }}>
+              <p className="text-muted" style={{ marginBottom: '1rem' }}>Abre WhatsApp en tu celular, ve a "Dispositivos Vinculados" y escanea este código para conectar el sistema de envío automático.</p>
+              {botQR ? (
+                <div style={{ background: '#fff', padding: '1rem', borderRadius: '8px', display: 'inline-block' }}>
+                  <img src={botQR} alt="WhatsApp QR Code" style={{ width: '250px', height: '250px' }} />
+                </div>
+              ) : (
+                <div className="text-muted">Generando código QR...</div>
+              )}
+            </div>
           </div>
         </div>
       )}

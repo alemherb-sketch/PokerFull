@@ -9,3 +9,13 @@ services:
         sync: false
       - key: VITE_SUPABASE_ANON_KEY
         sync: false
+
+  - type: web
+    name: pokerfull-bot
+    env: node
+    rootDir: server
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 3000
