@@ -13,7 +13,12 @@ services:
   - type: web
     name: pokerfull-bot
     env: docker
+    plan: starter
     rootDir: server
+    disk:
+      name: wwebjs-auth
+      mountPath: /app/.wwebjs_auth
+      sizeGB: 1
     envVars:
       - key: PORT
         value: 3000

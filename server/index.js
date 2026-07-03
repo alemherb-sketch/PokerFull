@@ -13,53 +13,87 @@ app.use(express.json());
 // Bot State
 let botStatus = 'DISCONNECTED'; // DISCONNECTED, QR_READY, CONNECTED
 let currentQR = null;
+let client = null;
 
-// Initialize WhatsApp Client
-const client = new Client({
-  authStrategy: new LocalAuth(),
-  puppeteer: {
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
-    args: [
-      '--no-sandbox', 
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--no-first-run',
-      '--no-zygote',
-      '--single-process',
-      '--disable-gpu'
-    ]
-  }
-});
+// '--single-process' and '--no-zygote' were removed: on low-memory hosts (Render Starter, 512MB)
+// they collapse Chromium into one OS process, so any renderer hiccup while rendering the heavy
+// WhatsApp Web SPA kills the whole browser instantly instead of just the tab.
+const PUPPETEER_ARGS = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-dev-shm-usage',
+  '--disable-accelerated-2d-canvas',
+  '--disable-gpu',
+  '--no-first-run',
+  '--no-default-browser-check',
+  '--disable-extensions',
+  '--disable-background-networking',
+  '--disable-default-apps',
+  '--disable-sync',
+  '--disable-translate',
+  '--disable-features=TranslateUI',
+  '--disable-hang-monitor',
+  '--disable-prompt-on-repost',
+  '--disable-client-side-phishing-detection',
+  '--disable-backgrounding-occluded-windows',
+  '--disable-renderer-backgrounding',
+  '--mute-audio',
+  '--metrics-recording-only'
+];
 
-client.on('qr', (qr) => {
-  console.log('QR Code received, waiting for scan...');
-  currentQR = qr;
-  botStatus = 'QR_READY';
-});
+// Build a brand-new Client each time we (re)connect. Reusing the same instance after a
+// 'disconnected' event is unreliable in whatsapp-web.js because the underlying Puppeteer
+// browser is often already dead/corrupted at that point.
+function createClient() {
+  client = new Client({
+    authStrategy: new LocalAuth(),
+    puppeteer: {
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+      args: PUPPETEER_ARGS
+    }
+  });
 
-client.on('ready', () => {
-  console.log('WhatsApp Bot is ready and connected!');
-  currentQR = null;
-  botStatus = 'CONNECTED';
-});
+  client.on('qr', (qr) => {
+    console.log('QR Code received, waiting for scan...');
+    currentQR = qr;
+    botStatus = 'QR_READY';
+  });
 
-client.on('disconnected', (reason) => {
-  console.log('WhatsApp Bot was disconnected:', reason);
-  botStatus = 'DISCONNECTED';
-  currentQR = null;
-  // Re-initialize the client to get a new QR code
-  client.initialize();
-});
+  client.on('ready', () => {
+    console.log('WhatsApp Bot is ready and connected!');
+    currentQR = null;
+    botStatus = 'CONNECTED';
+  });
 
-client.on('auth_failure', msg => {
-  console.error('WhatsApp Bot authentication failure:', msg);
-  botStatus = 'DISCONNECTED';
-  currentQR = null;
+  client.on('disconnected', (reason) => {
+    console.log('WhatsApp Bot was disconnected:', reason);
+    botStatus = 'DISCONNECTED';
+    currentQR = null;
+    const deadClient = client;
+    client = null;
+    deadClient.destroy().catch(err => console.error('Error destroying old client:', err.message));
+    setTimeout(createClient, 5000);
+  });
+
+  client.on('auth_failure', msg => {
+    console.error('WhatsApp Bot authentication failure:', msg);
+    botStatus = 'DISCONNECTED';
+    currentQR = null;
+  });
+
+  client.initialize().catch(err => {
+    console.error('Error initializing WhatsApp client:', err.message);
+    botStatus = 'DISCONNECTED';
+    setTimeout(createClient, 5000);
+  });
+}
+
+process.on('unhandledRejection', (err) => {
+  console.error('Unhandled rejection:', err);
 });
 
 // Start the client
-client.initialize();
+createClient();
 
 // API Routes
 
