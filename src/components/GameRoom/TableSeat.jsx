@@ -1,6 +1,9 @@
 import React from 'react';
+import { useGame } from '../../context/GameContext';
+import { X } from 'lucide-react';
 
 const TableSeat = ({ position, player, totalSeats }) => {
+  const { changeSeat, removePlayer } = useGame();
   // Fixed optimal positions for a 10-seat oval poker table (percentages)
   const seatPositions = [
     { left: 50, top: -5 },   // Seat 1: Top Center
@@ -31,18 +34,72 @@ const TableSeat = ({ position, player, totalSeats }) => {
     isLosing = profit < 0;
   }
 
+  const handleDragStart = (e) => {
+    if (player) {
+      e.dataTransfer.setData('text/plain', player.id);
+    }
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault(); // Permite soltar aquí
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    const draggedPlayerId = e.dataTransfer.getData('text/plain');
+    if (draggedPlayerId) {
+      changeSeat(draggedPlayerId, position);
+    }
+  };
+
   return (
     <div 
       className={`table-seat ${player ? 'occupied' : 'empty'}`}
       style={{
         left: `${left}%`,
         top: `${top}%`,
-        transform: 'translate(-50%, -50%)'
+        transform: 'translate(-50%, -50%)',
+        cursor: player ? 'grab' : 'default'
       }}
+      draggable={!!player}
+      onDragStart={handleDragStart}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
     >
-      <div className="seat-avatar flex-center">
+      <div className="seat-avatar flex-center" style={{ position: 'relative' }}>
         {player ? (
-          <span className="initials">{player.name.substring(0,2).toUpperCase()}</span>
+          <>
+            <span className="initials">{player.name.substring(0,2).toUpperCase()}</span>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`¿Estás seguro de retirar a ${player.name} de la mesa?`)) {
+                  removePlayer(player.id);
+                }
+              }}
+              style={{
+                position: 'absolute',
+                top: '-5px',
+                right: '-5px',
+                background: '#ef4444',
+                color: 'white',
+                border: 'none',
+                borderRadius: '50%',
+                width: '22px',
+                height: '22px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.5)',
+                padding: '0',
+                zIndex: 20
+              }}
+              title="Retirar Jugador"
+            >
+              <X size={14} strokeWidth={3} />
+            </button>
+          </>
         ) : (
           <span className="seat-number">{position}</span>
         )}

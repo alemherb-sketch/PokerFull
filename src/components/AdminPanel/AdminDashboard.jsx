@@ -212,11 +212,23 @@ const AdminDashboard = () => {
               Jugadores Activos
             </h3>
             <button 
-              className="btn btn-secondary btn-icon" 
+              className="btn-icon" 
               onClick={() => setShowAddPlayer(true)}
               title="Añadir Jugador"
+              style={{ 
+                background: 'linear-gradient(135deg, var(--primary), #d97706)', 
+                border: 'none', 
+                color: '#fff', 
+                cursor: 'pointer', 
+                padding: '0.6rem', 
+                borderRadius: '50%',
+                boxShadow: '0 4px 15px var(--primary-glow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
             >
-              <Plus size={18} />
+              <Plus size={20} strokeWidth={2.5} />
             </button>
           </div>
           
