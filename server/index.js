@@ -117,7 +117,8 @@ process.on('unhandledRejection', (err) => {
 });
 
 // Start the client
-createClient();
+// createClient();
+console.log('WhatsApp Bot initialization is DISABLED to prevent account blocks.');
 
 // API Routes
 
